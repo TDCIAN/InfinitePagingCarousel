@@ -13,15 +13,19 @@ final class ImageCollectionViewCell: UICollectionViewCell {
     
     private lazy var scrollView: UIScrollView = {
         let scrollView = UIScrollView()
+        scrollView.backgroundColor = .yellow.withAlphaComponent(0.3)
         scrollView.delegate = self
         scrollView.minimumZoomScale = 1.0
-        scrollView.maximumZoomScale = 1.0
+        scrollView.maximumZoomScale = 3.0
+        scrollView.showsHorizontalScrollIndicator = false
+        scrollView.showsVerticalScrollIndicator = false
         return scrollView
     }()
     
     private lazy var cellImageView: UIImageView = {
         let imageView = UIImageView()
         imageView.contentMode = .scaleAspectFit
+        imageView.clipsToBounds = true
         return imageView
     }()
     
@@ -35,9 +39,14 @@ final class ImageCollectionViewCell: UICollectionViewCell {
     }
     
     private func setup() {
-        contentView.addSubview(self.cellImageView)
-        self.cellImageView.snp.makeConstraints { make in
+        contentView.addSubview(self.scrollView)
+        self.scrollView.snp.makeConstraints { make in
             make.edges.equalToSuperview()
+        }
+        self.scrollView.addSubview(self.cellImageView)
+        self.cellImageView.snp.makeConstraints { make in
+            make.centerX.equalToSuperview()
+            make.size.equalToSuperview()
         }
     }
     
