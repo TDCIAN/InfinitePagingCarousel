@@ -23,7 +23,9 @@ final class ImagesViewModel {
             ._2,
             ._3,
             ._4,
-            ._5
+            ._5,
+            ._6,
+            ._7,
         ]
         self.imagesRelay.accept(images)
     }

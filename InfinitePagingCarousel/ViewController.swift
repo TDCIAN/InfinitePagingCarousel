@@ -11,19 +11,13 @@ import RxSwift
 import RxCocoa
 
 class ViewController: UIViewController {
-    
-    enum Metric {
-        static let collectionViewHeight = 350.0
-        static let cellWidth = UIScreen.main.bounds.width
-    }
-    
+
     private lazy var carouselCollectionView: UICollectionView = {
         let layout = UICollectionViewFlowLayout()
         layout.scrollDirection = .horizontal
         layout.minimumLineSpacing = 0
         layout.minimumInteritemSpacing = 0
-        layout.itemSize = CGSize(width: Metric.cellWidth, height: Metric.collectionViewHeight)
-        
+
         let collectionView = UICollectionView(frame: .zero, collectionViewLayout: layout)
         collectionView.layer.borderColor = UIColor.red.cgColor
         collectionView.layer.borderWidth = 1
@@ -78,34 +72,28 @@ class ViewController: UIViewController {
         self.setup()
         self.bind()
     }
-    
-    override func viewDidAppear(_ animated: Bool) {
-        super.viewDidAppear(animated)
-        
-        
-    }
-    
+
     private func setup() {
         self.view.addSubview(self.carouselCollectionView)
         self.view.addSubview(self.pageControl)
         self.view.addSubview(self.indexLabel)
         
-        self.carouselCollectionView.snp.makeConstraints {
-            $0.top.equalTo(self.view.safeAreaLayoutGuide.snp.top)
-            $0.horizontalEdges.equalToSuperview()
-            $0.height.equalTo(Metric.collectionViewHeight)
+        self.carouselCollectionView.snp.makeConstraints { make in
+            make.top.equalTo(self.view.safeAreaLayoutGuide.snp.top)
+            make.horizontalEdges.equalToSuperview()
+            make.height.equalTo(350)
         }
         
-        self.pageControl.snp.makeConstraints {
-            $0.top.equalTo(self.carouselCollectionView.snp.bottom).offset(15)
-            $0.centerX.equalToSuperview()
+        self.pageControl.snp.makeConstraints { make in
+            make.top.equalTo(self.carouselCollectionView.snp.bottom).offset(15)
+            make.centerX.equalToSuperview()
         }
         
-        self.indexLabel.snp.makeConstraints {
-            $0.top.equalTo(self.pageControl.snp.bottom).offset(15)
-            $0.centerX.equalToSuperview()
-            $0.width.equalTo(100)
-            $0.height.equalTo(50)
+        self.indexLabel.snp.makeConstraints { make in
+            make.top.equalTo(self.pageControl.snp.bottom).offset(15)
+            make.centerX.equalToSuperview()
+            make.width.equalTo(100)
+            make.height.equalTo(50)
         }
     }
     
@@ -115,7 +103,7 @@ class ViewController: UIViewController {
             .observe(on: MainScheduler.instance)
             .subscribe(with: self, onNext: { owner, images in
                 owner.items = images
-                owner.setImages(startIndex: 1)
+                owner.setImages(startIndex: 4)
             })
             .disposed(by: self.disposeBag)
     }
@@ -139,7 +127,7 @@ class ViewController: UIViewController {
         if startIndex == 0 {
             self.carouselCollectionView.setContentOffset(
                 .init(
-                    x: Metric.cellWidth,
+                    x: self.carouselCollectionView.frame.width,
                     y: self.carouselCollectionView.contentOffset.y
                 ),
                 animated: false
@@ -147,7 +135,7 @@ class ViewController: UIViewController {
         } else {
             self.carouselCollectionView.setContentOffset(
                 .init(
-                    x: Metric.cellWidth * Double(startIndex + 1),
+                    x: self.carouselCollectionView.frame.width * Double(startIndex + 1),
                     y: self.carouselCollectionView.contentOffset.y
                 ),
                 animated: false
@@ -195,26 +183,31 @@ extension ViewController: UICollectionViewDelegate {
         }
         
         let count = self.items.count
-        
-        print("### 페이지: \(page), 페이지 + 1: \(page + 1)")
 
         if scrollView.contentOffset.x == 0 {
             scrollView.setContentOffset(
                 .init(
-                    x: Metric.cellWidth * Double(count - 2),
+                    x: scrollView.frame.width * Double(count - 2),
                     y: scrollView.contentOffset.y
                 ),
                 animated: false
             )
         }
-        if scrollView.contentOffset.x == Double(count - 1) * Metric.cellWidth {
+        
+        if scrollView.contentOffset.x == Double(count - 1) * scrollView.frame.width {
             scrollView.setContentOffset(
                 .init(
-                    x: Metric.cellWidth,
+                    x: scrollView.frame.width,
                     y: scrollView.contentOffset.y
                 ),
                 animated: false
             )
         }
+    }
+}
+
+extension ViewController: UICollectionViewDelegateFlowLayout {
+    func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, sizeForItemAt indexPath: IndexPath) -> CGSize {
+        return collectionView.frame.size
     }
 }

@@ -11,6 +11,14 @@ import SnapKit
 final class ImageCollectionViewCell: UICollectionViewCell {
     static let identifier = "ImageCollectionViewCell"
     
+    private lazy var scrollView: UIScrollView = {
+        let scrollView = UIScrollView()
+        scrollView.delegate = self
+        scrollView.minimumZoomScale = 1.0
+        scrollView.maximumZoomScale = 1.0
+        return scrollView
+    }()
+    
     private lazy var cellImageView: UIImageView = {
         let imageView = UIImageView()
         imageView.contentMode = .scaleAspectFit
@@ -36,9 +44,17 @@ final class ImageCollectionViewCell: UICollectionViewCell {
     override func prepareForReuse() {
         super.prepareForReuse()
         self.cellImageView.image = nil
+        self.scrollView.zoomScale = 1.0
     }
     
     func setImage(_ image: UIImage) {
         self.cellImageView.image = image
+    }
+
+}
+
+extension ImageCollectionViewCell: UIScrollViewDelegate {
+    func viewForZooming(in scrollView: UIScrollView) -> UIView? {
+        return self.cellImageView
     }
 }
