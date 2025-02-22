@@ -8,6 +8,8 @@
 
 /* Begin PBXBuildFile section */
 		A98477372D661842009E8877 /* SnapKit in Frameworks */ = {isa = PBXBuildFile; productRef = A98477362D661842009E8877 /* SnapKit */; };
+		A99012B22D6A04D2005C2366 /* RxCocoa in Frameworks */ = {isa = PBXBuildFile; productRef = A99012B12D6A04D2005C2366 /* RxCocoa */; };
+		A99012B42D6A04D2005C2366 /* RxSwift in Frameworks */ = {isa = PBXBuildFile; productRef = A99012B32D6A04D2005C2366 /* RxSwift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -40,6 +42,8 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				A99012B42D6A04D2005C2366 /* RxSwift in Frameworks */,
+				A99012B22D6A04D2005C2366 /* RxCocoa in Frameworks */,
 				A98477372D661842009E8877 /* SnapKit in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -84,6 +88,8 @@
 			name = InfinitePagingCarousel;
 			packageProductDependencies = (
 				A98477362D661842009E8877 /* SnapKit */,
+				A99012B12D6A04D2005C2366 /* RxCocoa */,
+				A99012B32D6A04D2005C2366 /* RxSwift */,
 			);
 			productName = InfinitePagingCarousel;
 			productReference = A984771D2D6617FB009E8877 /* InfinitePagingCarousel.app */;
@@ -115,6 +121,7 @@
 			minimizedProjectReferenceProxies = 1;
 			packageReferences = (
 				A98477352D661842009E8877 /* XCRemoteSwiftPackageReference "SnapKit" */,
+				A99012B02D6A04D2005C2366 /* XCRemoteSwiftPackageReference "RxSwift" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = A984771E2D6617FB009E8877 /* Products */;
@@ -352,6 +359,14 @@
 				minimumVersion = 5.7.1;
 			};
 		};
+		A99012B02D6A04D2005C2366 /* XCRemoteSwiftPackageReference "RxSwift" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/ReactiveX/RxSwift.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 6.9.0;
+			};
+		};
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
@@ -359,6 +374,16 @@
 			isa = XCSwiftPackageProductDependency;
 			package = A98477352D661842009E8877 /* XCRemoteSwiftPackageReference "SnapKit" */;
 			productName = SnapKit;
+		};
+		A99012B12D6A04D2005C2366 /* RxCocoa */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = A99012B02D6A04D2005C2366 /* XCRemoteSwiftPackageReference "RxSwift" */;
+			productName = RxCocoa;
+		};
+		A99012B32D6A04D2005C2366 /* RxSwift */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = A99012B02D6A04D2005C2366 /* XCRemoteSwiftPackageReference "RxSwift" */;
+			productName = RxSwift;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};

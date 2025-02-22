@@ -7,53 +7,10 @@
 
 import UIKit
 import SnapKit
-
-final class ImageCollectionViewCell: UICollectionViewCell {
-    static let identifier = "ImageCollectionViewCell"
-    
-    private lazy var cellImageView: UIImageView = {
-        let imageView = UIImageView()
-        imageView.contentMode = .scaleAspectFit
-        return imageView
-    }()
-    
-    override init(frame: CGRect) {
-        super.init(frame: frame)
-        self.setup()
-    }
-    
-    required init?(coder: NSCoder) {
-        fatalError("init(coder:) has not been implemented")
-    }
-    
-    private func setup() {
-        contentView.addSubview(self.cellImageView)
-        self.cellImageView.snp.makeConstraints { make in
-            make.edges.equalToSuperview()
-        }
-    }
-    
-    override func prepareForReuse() {
-        super.prepareForReuse()
-        self.cellImageView.image = nil
-    }
-    
-    func setImage(_ image: UIImage) {
-        self.cellImageView.image = image
-    }
-}
+import RxSwift
+import RxCocoa
 
 class ViewController: UIViewController {
-    
-    private var startIndex: Int = 1
-    
-    var items: [UIImage] = [
-        ._1,
-        ._2,
-        ._3,
-        ._4,
-        ._5
-    ]
     
     enum Metric {
         static let collectionViewHeight = 350.0
@@ -102,61 +59,96 @@ class ViewController: UIViewController {
         return label
     }()
     
+    private var items: [UIImage] = [] {
+        didSet {
+            DispatchQueue.main.async { [weak self] in
+                guard let self else { return }
+                self.carouselCollectionView.reloadData()
+            }
+        }
+    }
+    
+    private let viewModel = ImagesViewModel()
+    
+    private let disposeBag: DisposeBag = DisposeBag()
+    
     override func viewDidLoad() {
         super.viewDidLoad()
 
-        view.addSubview(carouselCollectionView)
-        view.addSubview(pageControl)
-        view.addSubview(indexLabel)
-        
-        carouselCollectionView.snp.makeConstraints {
-            $0.top.equalTo(view.safeAreaLayoutGuide.snp.top)
-            $0.horizontalEdges.equalToSuperview()
-            $0.height.equalTo(Metric.collectionViewHeight)
-        }
-        
-        pageControl.snp.makeConstraints {
-            $0.top.equalTo(carouselCollectionView.snp.bottom).offset(15)
-            $0.centerX.equalToSuperview()
-        }
-        
-        indexLabel.snp.makeConstraints {
-            $0.top.equalTo(pageControl.snp.bottom).offset(15)
-            $0.centerX.equalToSuperview()
-            $0.width.equalTo(100)
-            $0.height.equalTo(50)
-        }
-
-        items.insert(items[items.count - 1], at: 0)
-        items.append(items[1])
-        
-        pageControl.numberOfPages = self.items.count - 2
-        
-        if startIndex == 0 {
-            pageControl.currentPage = 0
-            indexLabel.text = "1/\(self.items.count - 2)"
-        } else {
-            pageControl.currentPage = startIndex
-            indexLabel.text = "\(startIndex + 1)/\(self.items.count - 2)"
-        }
+        self.setup()
+        self.bind()
     }
     
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
         
+        
+    }
+    
+    private func setup() {
+        self.view.addSubview(self.carouselCollectionView)
+        self.view.addSubview(self.pageControl)
+        self.view.addSubview(self.indexLabel)
+        
+        self.carouselCollectionView.snp.makeConstraints {
+            $0.top.equalTo(self.view.safeAreaLayoutGuide.snp.top)
+            $0.horizontalEdges.equalToSuperview()
+            $0.height.equalTo(Metric.collectionViewHeight)
+        }
+        
+        self.pageControl.snp.makeConstraints {
+            $0.top.equalTo(self.carouselCollectionView.snp.bottom).offset(15)
+            $0.centerX.equalToSuperview()
+        }
+        
+        self.indexLabel.snp.makeConstraints {
+            $0.top.equalTo(self.pageControl.snp.bottom).offset(15)
+            $0.centerX.equalToSuperview()
+            $0.width.equalTo(100)
+            $0.height.equalTo(50)
+        }
+    }
+    
+    private func bind() {
+        self.viewModel.imagesRelay.asObservable()
+            .filter({ !$0.isEmpty })
+            .observe(on: MainScheduler.instance)
+            .subscribe(with: self, onNext: { owner, images in
+                owner.items = images
+                owner.setImages(startIndex: 1)
+            })
+            .disposed(by: self.disposeBag)
+    }
+    
+    private func setImages(startIndex: Int) {
+        self.items.insert(self.items[self.items.count - 1], at: 0)
+        self.items.append(self.items[1])
+        
+        self.pageControl.numberOfPages = self.items.count - 2
+        
         if startIndex == 0 {
-            carouselCollectionView.setContentOffset(
+            self.pageControl.currentPage = 0
+            self.indexLabel.text = "1/\(self.items.count - 2)"
+        } else {
+            self.pageControl.currentPage = startIndex
+            self.indexLabel.text = "\(startIndex + 1)/\(self.items.count - 2)"
+        }
+        
+        self.carouselCollectionView.layoutIfNeeded()
+        
+        if startIndex == 0 {
+            self.carouselCollectionView.setContentOffset(
                 .init(
                     x: Metric.cellWidth,
-                    y: carouselCollectionView.contentOffset.y
+                    y: self.carouselCollectionView.contentOffset.y
                 ),
                 animated: false
             )
         } else {
-            carouselCollectionView.setContentOffset(
+            self.carouselCollectionView.setContentOffset(
                 .init(
                     x: Metric.cellWidth * Double(startIndex + 1),
-                    y: carouselCollectionView.contentOffset.y
+                    y: self.carouselCollectionView.contentOffset.y
                 ),
                 animated: false
             )
@@ -166,7 +158,7 @@ class ViewController: UIViewController {
 
 extension ViewController: UICollectionViewDataSource {
     func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
-        return items.count
+        return self.items.count
     }
     
     func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
@@ -187,22 +179,22 @@ extension ViewController: UICollectionViewDelegate {
 
         var page = Int(scrollView.contentOffset.x / scrollView.frame.maxX) - 1
         
-        if page == items.count - 2 {
+        if page == self.items.count - 2 {
             page = 0
         }
         
         if page == -1 {
-            page = items.count - 3
+            page = self.items.count - 3
         }
         
-        pageControl.currentPage = page
+        self.pageControl.currentPage = page
         
         DispatchQueue.main.async { [weak self] in
             guard let self else { return }
             self.indexLabel.text = "\(page + 1)/\(self.items.count - 2)"
         }
         
-        let count = items.count
+        let count = self.items.count
         
         print("### 페이지: \(page), 페이지 + 1: \(page + 1)")
 
