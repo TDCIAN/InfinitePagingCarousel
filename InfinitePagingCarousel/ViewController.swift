@@ -54,7 +54,6 @@ class ViewController: UIViewController {
 
     enum Metric {
         static let collectionViewHeight = 350.0
-        static let cellWidth = UIScreen.main.bounds.width
     }
     
     private lazy var carouselCollectionView: UICollectionView = {
@@ -62,8 +61,6 @@ class ViewController: UIViewController {
         layout.scrollDirection = .horizontal
         layout.minimumLineSpacing = 0
         layout.minimumInteritemSpacing = 0
-        layout.itemSize = CGSize(width: Metric.cellWidth, height: Metric.collectionViewHeight)
-        
         let collectionView = UICollectionView(
             frame: .zero,
             collectionViewLayout: layout
@@ -101,8 +98,6 @@ class ViewController: UIViewController {
         return label
     }()
     
-    var timer: Timer?
-    
     override func viewDidLoad() {
         super.viewDidLoad()
         
@@ -123,7 +118,6 @@ class ViewController: UIViewController {
             make.centerX.equalToSuperview()
         }
 
-        self.activateTimer()
     }
 
     override func viewDidLayoutSubviews() {
@@ -136,45 +130,6 @@ class ViewController: UIViewController {
             ),
             animated: false
         )
-    }
-    
-    private func invalidateTimer() {
-        self.timer?.invalidate()
-    }
-    
-    private func activateTimer() {
-        self.timer = Timer.scheduledTimer(
-            timeInterval: 2,
-            target: self,
-            selector: #selector(self.timerCallBack),
-            userInfo: nil,
-            repeats: true
-        )
-    }
-    
-    @objc private func timerCallBack() {
-        let visibleItem = self.carouselCollectionView.indexPathsForVisibleItems[0].item
-        let nextItem = visibleItem + 1
-        let initialItemCounts = self.items.count - 2
-        
-        self.carouselCollectionView.scrollToItem(
-            at: IndexPath(item: nextItem, section: 0),
-            at: .centeredHorizontally,
-            animated: true
-        )
-        
-        if visibleItem == initialItemCounts {
-            DispatchQueue.main.asyncAfter(deadline: .now() + 1) { [weak self] in
-                guard let self else { return }
-                self.carouselCollectionView.scrollToItem(
-                    at: IndexPath(item: 1, section: 0),
-                    at: .centeredHorizontally,
-                    animated: false
-                )
-            }
-        }
-        
-        self.pageControl.currentPage = visibleItem % initialItemCounts
     }
 }
 
@@ -201,10 +156,6 @@ extension ViewController: UICollectionViewDataSource {
 extension ViewController: UICollectionViewDelegate {
     
     func scrollViewDidEndDecelerating(_ scrollView: UIScrollView) {
-
-        self.invalidateTimer()
-        
-        self.activateTimer()
         
         var page = Int(scrollView.contentOffset.x / scrollView.frame.maxX) - 1
         
@@ -223,27 +174,29 @@ extension ViewController: UICollectionViewDelegate {
         if scrollView.contentOffset.x == 0 {
             scrollView.setContentOffset(
                 .init(
-                    x: Metric.cellWidth * Double(count - 2),
+                    x: scrollView.frame.width * Double(count - 2),
                     y: scrollView.contentOffset.y
                 ),
                 animated: false
             )
         }
         
-        if scrollView.contentOffset.x == Double(count - 1) * Metric.cellWidth {
+        if scrollView.contentOffset.x == Double(count - 1) * scrollView.frame.width {
             scrollView.setContentOffset(
                 .init(
-                    x: Metric.cellWidth,
+                    x: scrollView.frame.width,
                     y: scrollView.contentOffset.y
                 ),
                 animated: false
             )
         }
+        
+        print("### 페이지: \(page), 카운트: \(count)")
     }
 }
 
-//extension ViewController: UICollectionViewDelegateFlowLayout {
-//    func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, sizeForItemAt indexPath: IndexPath) -> CGSize {
-//        return collectionView.frame.size
-//    }
-//}
+extension ViewController: UICollectionViewDelegateFlowLayout {
+    func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, sizeForItemAt indexPath: IndexPath) -> CGSize {
+        return collectionView.frame.size
+    }
+}
