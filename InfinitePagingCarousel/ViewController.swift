@@ -14,15 +14,15 @@ class ViewController: UIViewController {
 
     private lazy var carouselCollectionView: UICollectionView = {
         let layout = UICollectionViewFlowLayout()
-        layout.scrollDirection = .horizontal
-        layout.minimumLineSpacing = 0
-        layout.minimumInteritemSpacing = 0
+        layout.scrollDirection = .horizontal // Set horizontal scroll direction
+        layout.minimumLineSpacing = 0 // Set minimum spacing between cells
+        layout.minimumInteritemSpacing = 0 // Set minimum spacing between items
 
         let collectionView = UICollectionView(frame: .zero, collectionViewLayout: layout)
         collectionView.layer.borderColor = UIColor.red.cgColor
         collectionView.layer.borderWidth = 1
         collectionView.isScrollEnabled = true
-        collectionView.isPagingEnabled = true
+        collectionView.isPagingEnabled = true // Enable paging for scrolling
         collectionView.showsHorizontalScrollIndicator = false
         collectionView.backgroundColor = .clear
         collectionView.dataSource = self
@@ -33,13 +33,13 @@ class ViewController: UIViewController {
         )
         return collectionView
     }()
-    
+
     private lazy var pageControl: UIPageControl = {
         let pageControl = UIPageControl(frame: .zero)
         pageControl.currentPageIndicatorTintColor = .systemGreen
         pageControl.pageIndicatorTintColor = .red
         pageControl.backgroundStyle = .minimal
-        pageControl.isUserInteractionEnabled = false
+        pageControl.isUserInteractionEnabled = false // Disable user interaction
         return pageControl
     }()
 
@@ -53,7 +53,8 @@ class ViewController: UIViewController {
         return label
     }()
     
-    private var items: [UIImage] = [] {
+    // Array of carousel images
+    private var carouselImages: [UIImage] = [] {
         didSet {
             DispatchQueue.main.async { [weak self] in
                 guard let self else { return }
@@ -61,11 +62,11 @@ class ViewController: UIViewController {
             }
         }
     }
-    
+
     private let viewModel = ImagesViewModel()
-    
+
     private let disposeBag: DisposeBag = DisposeBag()
-    
+
     override func viewDidLoad() {
         super.viewDidLoad()
 
@@ -102,29 +103,39 @@ class ViewController: UIViewController {
             .filter({ !$0.isEmpty })
             .observe(on: MainScheduler.instance)
             .subscribe(with: self, onNext: { owner, images in
-                owner.items = images
+                // Set carousel images and start index to 4
+                owner.carouselImages = images
                 owner.setImages(startIndex: 4)
             })
             .disposed(by: self.disposeBag)
     }
     
+    // Set images and start index
     private func setImages(startIndex: Int) {
-        self.items.insert(self.items[self.items.count - 1], at: 0)
-        self.items.append(self.items[1])
+        // Move the last item to the first position
+        self.carouselImages.insert(self.carouselImages[self.carouselImages.count - 1], at: 0)
         
-        self.pageControl.numberOfPages = self.items.count - 2
+        // Add the second item to the end
+        self.carouselImages.append(self.carouselImages[1])
+        
+        // Set the number of pages for the page control
+        self.pageControl.numberOfPages = self.carouselImages.count - 2
         
         if startIndex == 0 {
+            // Set the current page to 0 if the start index is 0
             self.pageControl.currentPage = 0
-            self.indexLabel.text = "1/\(self.items.count - 2)"
+            self.indexLabel.text = "1/\(self.carouselImages.count - 2)"
         } else {
+            // Set the current page if the start index is not 0
             self.pageControl.currentPage = startIndex
-            self.indexLabel.text = "\(startIndex + 1)/\(self.items.count - 2)"
+            self.indexLabel.text = "\(startIndex + 1)/\(self.carouselImages.count - 2)"
         }
         
+        // Apply the layout immediately
         self.carouselCollectionView.layoutIfNeeded()
         
         if startIndex == 0 {
+            // Move to the first page if the start index is 0
             self.carouselCollectionView.setContentOffset(
                 .init(
                     x: self.carouselCollectionView.frame.width,
@@ -133,6 +144,7 @@ class ViewController: UIViewController {
                 animated: false
             )
         } else {
+            // Move to the specified page if the start index is not 0
             self.carouselCollectionView.setContentOffset(
                 .init(
                     x: self.carouselCollectionView.frame.width * Double(startIndex + 1),
@@ -146,7 +158,7 @@ class ViewController: UIViewController {
 
 extension ViewController: UICollectionViewDataSource {
     func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
-        return self.items.count
+        return self.carouselImages.count
     }
     
     func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
@@ -156,7 +168,8 @@ extension ViewController: UICollectionViewDataSource {
         ) as? ImageCollectionViewCell else {
             return UICollectionViewCell()
         }
-        let image = items[indexPath.item]
+        // Set the image for the cell
+        let image = self.carouselImages[indexPath.item]
         cell.setImage(image)
         return cell
     }
@@ -164,26 +177,31 @@ extension ViewController: UICollectionViewDataSource {
 
 extension ViewController: UICollectionViewDelegate {
     func scrollViewDidEndDecelerating(_ scrollView: UIScrollView) {
-
+        // Calculate the current page
         var page = Int(scrollView.contentOffset.x / scrollView.frame.maxX) - 1
         
-        if page == self.items.count - 2 {
+        // Move to the first page if the current page is the last
+        if page == self.carouselImages.count - 2 {
             page = 0
         }
         
+        // Move to the last page if the current page is -1
         if page == -1 {
-            page = self.items.count - 3
+            page = self.carouselImages.count - 3
         }
         
+        // Set the current page for the page control
         self.pageControl.currentPage = page
         
+        // Update the index label text
         DispatchQueue.main.async { [weak self] in
             guard let self else { return }
-            self.indexLabel.text = "\(page + 1)/\(self.items.count - 2)"
+            self.indexLabel.text = "\(page + 1)/\(self.carouselImages.count - 2)"
         }
         
-        let count = self.items.count
+        let count = self.carouselImages.count
 
+        // Move to the last page if the current offset is 0
         if scrollView.contentOffset.x == 0 {
             scrollView.setContentOffset(
                 .init(
@@ -194,6 +212,7 @@ extension ViewController: UICollectionViewDelegate {
             )
         }
         
+        // Move to the first page if the current offset is at the end
         if scrollView.contentOffset.x == Double(count - 1) * scrollView.frame.width {
             scrollView.setContentOffset(
                 .init(

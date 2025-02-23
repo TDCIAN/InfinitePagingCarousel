@@ -15,6 +15,7 @@ final class ImageCollectionViewCell: UICollectionViewCell {
         let scrollView = UIScrollView()
         scrollView.backgroundColor = .yellow.withAlphaComponent(0.3)
         scrollView.delegate = self
+        // Set the minimum and maximum zoom scales
         scrollView.minimumZoomScale = 1.0
         scrollView.maximumZoomScale = 3.0
         scrollView.showsHorizontalScrollIndicator = false
@@ -43,6 +44,7 @@ final class ImageCollectionViewCell: UICollectionViewCell {
         self.scrollView.snp.makeConstraints { make in
             make.edges.equalToSuperview()
         }
+        // Add the image view to the scroll view
         self.scrollView.addSubview(self.cellImageView)
         self.cellImageView.snp.makeConstraints { make in
             make.centerX.equalToSuperview()
