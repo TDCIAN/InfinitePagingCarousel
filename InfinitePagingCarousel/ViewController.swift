@@ -112,6 +112,9 @@ class ViewController: UIViewController {
     
     // Set images and start index
     private func setImages(startIndex: Int) {
+        // If carouselImages.count is 1, carouselCollectionView does not need to scroll
+        self.carouselCollectionView.isScrollEnabled = self.carouselImages.count > 1
+        
         // Move the last item to the first position
         self.carouselImages.insert(self.carouselImages[self.carouselImages.count - 1], at: 0)
         
